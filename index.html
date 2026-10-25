@@ -27,8 +27,8 @@
 .ball.special::after{content:"ĐB";position:absolute;bottom:-1.3em;font-size:.6rem;letter-spacing:.06em;color:var(--muted);font-family:var(--body);font-weight:600}
 .ball[data-sum]::after{content:"TỔNG"}
 .balls{padding-bottom:4px}
-.seg{grid-template-columns:repeat(4,1fr)}
-@media (max-width:440px){.seg{grid-template-columns:1fr 1fr}}
+.seg{grid-template-columns:repeat(5,1fr)}
+@media (max-width:520px){.seg{grid-template-columns:repeat(6,1fr)}.seg button{grid-column:span 2}.seg button:nth-child(n+4){grid-column:span 3}}
 .hist li span:first-child{min-width:0;overflow-wrap:anywhere}
 [hidden]{display:none!important}
 html,body{background:var(--paper);color:var(--ink);margin:0}
@@ -83,6 +83,7 @@ label.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ball)}
     <button type="button" data-g="535" aria-pressed="false">Lotto 5/35</button>
     <button type="button" data-g="keno" aria-pressed="false">Keno</button>
     <button type="button" data-g="b18" aria-pressed="false">Bingo18</button>
+    <button type="button" data-g="xsmb" aria-pressed="false">XSMB</button>
   </div>
   <label class="opt" id="kenoRow" hidden>Bậc Keno (số lượng số chọn):
     <select id="kenoK" style="font:inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)">
@@ -223,7 +224,8 @@ const GAMES={
   '645':{name:'6/45',label:'Mega 6/45',kind:'lotto',k:6,n:45,sp:0,odds:()=>'Độc đắc 1 / '+fmt(C(45,6))},
   '535':{name:'5/35',label:'Lotto 5/35',kind:'lotto',k:5,n:35,sp:12,odds:()=>'Độc đắc 1 / '+fmt(C(35,5)*12)+' (5 số + ĐB)'},
   'keno':{name:'Keno',label:'Keno',kind:'keno',n:80,odds:()=>{const k=+$('kenoK').value;return `Trúng đủ ${k}/${k} số: 1 / ${fmt(C(80,20)/C(80-k,20-k))} (giả định mỗi kỳ quay 20/80 số)`;}},
-  'b18':{name:'Bingo18',label:'Bingo18',kind:'dice',k:3,n:6,odds:()=>'Đúng bộ 3 số theo thứ tự: 1 / 216 · tổng 3–18'}
+  'b18':{name:'Bingo18',label:'Bingo18',kind:'dice',k:3,n:6,odds:()=>'Đúng bộ 3 số theo thứ tự: 1 / 216 · tổng 3–18'},
+  'xsmb':{name:'XSMB',label:'XSKT miền Bắc',kind:'digits',k:5,odds:()=>'Đặc biệt ~1 / 250.000 (giả định 8/20 ký hiệu) · trúng giải bất kỳ ~1 / 18,5'}
 };
 let game='645';
 try{const g=localStorage.getItem('lrs-game');if(GAMES[g])game=g;}catch(_){}
@@ -233,6 +235,7 @@ function renderBalls(nums,sp){
   let cells;
   if(G.kind==='lotto') cells=Array.from({length:6},(_,i)=>({sp:G.sp&&i===5,v:nums?(G.sp&&i===5?pad2(sp):pad2(nums[i])):'··'}));
   else if(G.kind==='keno'){const k=+$('kenoK').value;cells=Array.from({length:k},(_,i)=>({v:nums?pad2(nums[i]):'··'}));}
+  else if(G.kind==='digits') cells=Array.from({length:5},(_,i)=>({v:nums?nums[i]:'·'}));
   else cells=[0,1,2].map(i=>({v:nums?nums[i]:'·'})).concat([{sp:1,sum:1,v:nums?nums.reduce((a,b)=>a+b,0):'Σ'}]);
   const cols=G.kind==='keno'?Math.min(5,cells.length):cells.length;
   $('balls').style.gridTemplateColumns=`repeat(${cols},minmax(0,${G.kind==='keno'||cells.length>=5?'1fr':'64px'}))`;
@@ -270,6 +273,9 @@ $('drawBtn').addEventListener('click',async()=>{
   } else if(G.kind==='keno'){
     const k=+$('kenoK').value; nums=await pick(seed,3,0,k,80);
     current=`Keno bậc ${k}: `+nums.map(pad2).join(' ');
+  } else if(G.kind==='digits'){
+    nums=(await roll(seed,5,5,10)).map(d=>d-1);
+    current='XSMB: '+nums.join('');
   } else {
     nums=await roll(seed,4,3,6);
     current=`Bingo18: ${nums.join(' ')} · tổng ${nums.reduce((a,b)=>a+b,0)}`;
