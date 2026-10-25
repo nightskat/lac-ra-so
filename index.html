@@ -225,7 +225,7 @@ const GAMES={
   '535':{name:'5/35',label:'Lotto 5/35',kind:'lotto',k:5,n:35,sp:12,odds:()=>'Độc đắc 1 / '+fmt(C(35,5)*12)+' (5 số + ĐB)'},
   'keno':{name:'Keno',label:'Keno',kind:'keno',n:80,odds:()=>{const k=+$('kenoK').value;return `Trúng đủ ${k}/${k} số: 1 / ${fmt(C(80,20)/C(80-k,20-k))} (giả định mỗi kỳ quay 20/80 số)`;}},
   'b18':{name:'Bingo18',label:'Bingo18',kind:'dice',k:3,n:6,odds:()=>'Đúng bộ 3 số theo thứ tự: 1 / 216 · tổng 3–18'},
-  'xsmb':{name:'XSMB',label:'XSKT miền Bắc',kind:'digits',k:5,odds:()=>'Đặc biệt ~1 / 250.000 (giả định 8/20 ký hiệu) · trúng giải bất kỳ ~1 / 18,5'}
+  'xsmb':{name:'XSMB',label:'XSKT miền Bắc',kind:'digits',k:5,odds:()=>'Đặc biệt ~1 / 333.333 (6 ký hiệu trúng ĐB, giả định 20 ký hiệu) · trúng giải bất kỳ ~1 / 18,5'}
 };
 let game='645';
 try{const g=localStorage.getItem('lrs-game');if(GAMES[g])game=g;}catch(_){}
