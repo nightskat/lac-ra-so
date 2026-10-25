@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lắc Ra Số 6/45</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{
+  --paper:#eef3f1; --card:#ffffff; --ink:#10221e; --muted:#5b6f6a; --line:#cfdcd8;
+  --ball:#d6452f; --ball-ink:#ffffff; --trail:#1f7a68; --ok:#1f7a68; --warn:#b26b00;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#0f1715; --card:#16211e; --ink:#e4ece9; --muted:#93a8a2; --line:#2a3a36;
+  --ball:#ff6a52; --ball-ink:#1a0703; --trail:#4fd1b5; --ok:#4fd1b5; --warn:#f0b04a; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--paper);color:var(--ink);margin:0}
+body{font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+main{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1.05;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--ball)}
+.sub{color:var(--muted);margin:4px 0 0}
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#pad{position:relative;height:200px;border:1.5px dashed var(--line);border-radius:14px;background:var(--card);touch-action:none;overflow:hidden}
+#pad canvas{position:absolute;inset:0;width:100%;height:100%}
+#hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);pointer-events:none;padding:16px}
+.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--trail);transition:width .15s}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.75rem;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-family:var(--mono)}
+.chip.on{color:var(--ok);border-color:var(--ok)}
+.chip.off{color:var(--warn);border-color:var(--warn)}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:10px 14px;font-weight:600}
+button:focus-visible,input:focus-visible{outline:3px solid var(--trail);outline-offset:2px}
+#sensorBtn{width:100%;border-color:var(--trail);color:var(--trail)}
+#drawBtn{background:var(--ink);color:var(--paper);font-family:var(--display);font-size:1.15rem;padding:14px;width:100%}
+#drawBtn:disabled{opacity:.35;cursor:not-allowed}
+.ticket{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.balls{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.ball{aspect-ratio:1;max-width:100%;border-radius:50%;background:var(--ball);color:var(--ball-ink);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:1.25rem}
+.ball.empty{background:transparent;border:1.5px dashed var(--line);color:var(--muted)}
+.ball.pop{animation:pop .35s ease-out both}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.ball.pop{animation:none}.meter i{transition:none}}
+.meta{font-family:var(--mono);font-size:.75rem;color:var(--muted);word-break:break-all}
+label.opt{display:flex;gap:8px;align-items:flex-start;font-size:.9rem}
+label.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ball)}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hist li{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:.85rem;border-bottom:1px solid var(--line);padding-bottom:6px}
+.hist li span:last-child{color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lắc Ra Số <span>6/45</span></h1>
+    <p class="sub">Bật cảm biến rồi lắc, xoay điện thoại. Có thể vẽ thêm vào khung. Đầy thanh là bốc được.</p>
+  </header>
+
+  <button id="sensorBtn" type="button">📡 Bật gyro · la bàn · mic</button>
+
+  <section aria-label="Thu entropy" style="display:flex;flex-direction:column;gap:10px">
+    <div id="pad"><canvas id="cv"></canvas><div id="hint">Lắc máy, hoặc vẽ ngoằn ngoèo ở đây</div></div>
+    <div class="meter" role="progressbar" aria-label="Lượng entropy" aria-valuemin="0" aria-valuemax="100"><i id="bar"></i></div>
+    <div class="chips">
+      <span class="chip" id="c-motion">gyro · tắt</span>
+      <span class="chip" id="c-compass">la bàn · tắt</span>
+      <span class="chip" id="c-mic">mic · tắt</span>
+      <span class="chip" id="c-touch">chạm · 0</span>
+      <span class="chip on">crypto · sẵn</span>
+    </div>
+  </section>
+
+  <label class="opt"><input type="checkbox" id="avoid"> Cần ít nhất 3 số từ 32–45 (tránh bộ "ngày sinh", giảm khả năng chia Jackpot)</label>
+
+  <button id="drawBtn" type="button" disabled>Lắc thêm để bốc số</button>
+
+  <section class="ticket" aria-label="Kết quả">
+    <div class="row"><span class="label">Vé của bạn</span><button id="copyBtn" type="button" disabled>Sao chép</button></div>
+    <div class="balls" id="balls"></div>
+    <div class="meta" id="meta">Chưa bốc. Xác suất Jackpot mọi bộ số đều là 1 / 8.145.060.</div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:8px">
+    <span class="label">5 lần bốc gần nhất (chỉ lưu trên máy này)</span>
+    <ul class="hist" id="hist"></ul>
+  </section>
+
+  <p class="note">Trộn: gyro + gia tốc + hướng la bàn + nhiễu mic + nét vẽ + 32 byte <code>crypto.getRandomValues</code> → SHA-256 → bốc không lặp, không lệch modulo. Không gửi dữ liệu đi đâu, không ghi âm. Bốc xong thì xóa nguồn và tắt mic.</p>
+</main>
+
+<script>
+(()=>{
+const TARGET=200;
+let pool=[], touchN=0, motionN=0, compassN=0, micN=0;
+let audioCtx=null, micStream=null, micTimer=null;
+const $=id=>document.getElementById(id);
+const pad=$('pad'), cv=$('cv'), ctx=cv.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function fit(){const r=pad.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);}
+fit(); addEventListener('resize',fit);
+
+function add(vals){for(const v of vals) pool.push(Number.isFinite(v)?v:0); if(pool.length>80000) pool=pool.slice(-50000);}
+const score=()=>touchN+motionN*0.5+compassN*0.25+micN*2;
+function chip(id,label,state){const c=$(id);c.textContent=label;c.classList.toggle('on',state==='on');c.classList.toggle('off',state==='off');}
+let raf=0;
+function update(){ if(raf) return; raf=requestAnimationFrame(()=>{raf=0;
+  const p=Math.min(100,Math.round(score()/TARGET*100));
+  $('bar').style.width=p+'%'; document.querySelector('.meter').setAttribute('aria-valuenow',p);
+  chip('c-touch','chạm · '+touchN,touchN?'on':'');
+  if(motionN) chip('c-motion','gyro · '+motionN,'on');
+  if(compassN) chip('c-compass','la bàn · '+compassN,'on');
+  if(micN) chip('c-mic','mic · '+micN,'on');
+  const ready=p>=100; $('drawBtn').disabled=!ready;
+  $('drawBtn').textContent=ready?'🎲 Bốc 6 số':`Lắc thêm để bốc số (${p}%)`;
+});}
+
+// Touch / pen
+let last=null;
+pad.addEventListener('pointerdown',e=>{pad.setPointerCapture(e.pointerId);last=[e.offsetX,e.offsetY];$('hint').hidden=true;});
+pad.addEventListener('pointermove',e=>{
+  if(!last) return;
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+  for(const ev of evs){add([performance.now(),ev.timeStamp,ev.offsetX,ev.offsetY,ev.pressure,ev.tiltX||0,ev.width||0]);touchN++;}
+  ctx.strokeStyle=css('--trail');ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(last[0],last[1]);ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();
+  last=[e.offsetX,e.offsetY]; update();
+});
+const up=()=>{last=null;}; pad.addEventListener('pointerup',up); pad.addEventListener('pointercancel',up);
+
+// Motion + compass
+function onMotion(e){const a=e.accelerationIncludingGravity||{},r=e.rotationRate||{};add([performance.now(),a.x,a.y,a.z,r.alpha,r.beta,r.gamma,e.interval]);motionN++;update();}
+function onOrient(e){add([performance.now(),e.alpha,e.beta,e.gamma,e.webkitCompassHeading,e.webkitCompassAccuracy]);compassN++;update();}
+
+// Mic noise: low-order bits of raw samples, no recording kept
+function startMicLoop(){
+  const an=audioCtx.createAnalyser(); an.fftSize=2048;
+  audioCtx.createMediaStreamSource(micStream).connect(an);
+  const buf=new Float32Array(an.fftSize);
+  micTimer=setInterval(()=>{an.getFloatTimeDomainData(buf);
+    const vals=[performance.now()];for(let i=0;i<buf.length;i+=64) vals.push(buf[i]*1e7%1);
+    add(vals);micN++;update();},100);
+}
+function stopMic(){clearInterval(micTimer);micTimer=null;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}chip('c-mic','mic · đã tắt','');}
+
+$('sensorBtn').addEventListener('click',()=>{
+  if(!window.isSecureContext){chip('c-motion','gyro · cần HTTPS','off');chip('c-compass','la bàn · cần HTTPS','off');chip('c-mic','mic · cần HTTPS','off');return;}
+  try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume();}catch(_){}
+  const perms=[];
+  if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission) perms.push(DeviceMotionEvent.requestPermission());
+  if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission) perms.push(DeviceOrientationEvent.requestPermission());
+  Promise.allSettled(perms).then(r=>{
+    const denied=r.some(x=>x.status==='rejected'||x.value==='denied');
+    if(denied){chip('c-motion','gyro · bị từ chối','off');chip('c-compass','la bàn · bị từ chối','off');return;}
+    addEventListener('devicemotion',onMotion); addEventListener('deviceorientation',onOrient);
+    chip('c-motion','gyro · chờ',''); chip('c-compass','la bàn · chờ','');
+    setTimeout(()=>{if(!motionN)chip('c-motion','gyro · không có','off');if(!compassN)chip('c-compass','la bàn · không có','off');},3000);
+  });
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
+      .then(s=>{micStream=s;chip('c-mic','mic · chờ','');startMicLoop();})
+      .catch(()=>chip('c-mic','mic · bị từ chối','off'));
+  } else chip('c-mic','mic · không có','off');
+  $('sensorBtn').textContent='📡 Đã bật. Lắc và xoay máy';
+});
+
+// Draw
+function cat(...arrs){const n=arrs.reduce((s,a)=>s+a.length,0),o=new Uint8Array(n);let i=0;for(const a of arrs){o.set(a,i);i+=a.length;}return o;}
+const u32=n=>new Uint8Array(new Uint32Array([n]).buffer);
+const sha=async b=>new Uint8Array(await crypto.subtle.digest('SHA-256',b));
+async function pick(seed,attempt){
+  const out=new Set();let ctr=0;
+  while(out.size<6){const b=await sha(cat(seed,u32(attempt),u32(ctr++)));
+    for(let i=0;i+1<b.length&&out.size<6;i+=2){const v=(b[i]<<8)|b[i+1];if(v>=65520)continue;out.add(v%45+1);}}
+  return [...out].sort((a,b)=>a-b);
+}
+const pad2=n=>String(n).padStart(2,'0');
+function renderBalls(nums){
+  $('balls').innerHTML='';
+  for(let i=0;i<6;i++){const d=document.createElement('div');
+    if(nums){d.className='ball pop';d.style.animationDelay=(i*70)+'ms';d.textContent=pad2(nums[i]);}
+    else{d.className='ball empty';d.textContent='··';}
+    $('balls').appendChild(d);}
+}
+renderBalls(null);
+
+let current=null;
+$('drawBtn').addEventListener('click',async()=>{
+  $('drawBtn').disabled=true;
+  const used={g:motionN,c:compassN,m:micN,t:touchN};
+  const seed=await sha(cat(new Uint8Array(new Float64Array(pool).buffer),new Uint8Array(new Float64Array([performance.now(),Date.now()]).buffer),crypto.getRandomValues(new Uint8Array(32))));
+  let nums,attempt=0;
+  do{nums=await pick(seed,attempt++);}while($('avoid').checked&&nums.filter(n=>n<=31).length>3);
+  current=nums.map(pad2).join(' ');
+  renderBalls(nums);
+  const hex=[...seed.slice(0,8)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  $('meta').textContent=`seed ${hex}… · gyro ${used.g} · la bàn ${used.c} · mic ${used.m} · chạm ${used.t}${$('avoid').checked?' · lọc ≥3 số 32–45':''}`;
+  $('copyBtn').disabled=false; saveHist(current);
+  pool=[];touchN=0;motionN=0;compassN=0;micN=0;
+  stopMic();
+  ctx.clearRect(0,0,cv.width,cv.height);$('hint').hidden=false;$('hint').textContent='Đã bốc. Lắc lại để bốc vé mới (bật lại mic nếu muốn)';
+  update();
+});
+
+$('copyBtn').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(current);$('copyBtn').textContent='Đã chép';}
+  catch(_){const r=document.createRange();r.selectNodeContents($('balls'));getSelection().removeAllRanges();getSelection().addRange(r);$('copyBtn').textContent='Đã bôi đen';}
+  setTimeout(()=>$('copyBtn').textContent='Sao chép',1500);
+});
+
+function loadHist(){try{return JSON.parse(localStorage.getItem('lrs-hist')||'[]');}catch(_){return [];}}
+function renderHist(h){
+  $('hist').innerHTML='';
+  if(!h.length){$('hist').innerHTML='<li><span>Chưa có</span><span></span></li>';return;}
+  for(const x of h){const li=document.createElement('li');const a=document.createElement('span');a.textContent=x.n;const b=document.createElement('span');b.textContent=x.t;li.append(a,b);$('hist').appendChild(li);}
+}
+function saveHist(n){const h=loadHist();h.unshift({n,t:new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})});
+  const s=h.slice(0,5);try{localStorage.setItem('lrs-hist',JSON.stringify(s));}catch(_){}renderHist(s);}
+renderHist(loadHist());
+update();
+})();
+</script>
+</body>
+</html>
