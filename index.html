@@ -27,8 +27,7 @@
 .ball.special::after{content:"ĐB";position:absolute;bottom:-1.3em;font-size:.6rem;letter-spacing:.06em;color:var(--muted);font-family:var(--body);font-weight:600}
 .ball[data-sum]::after{content:"TỔNG"}
 .balls{padding-bottom:4px}
-.seg{grid-template-columns:repeat(5,1fr)}
-@media (max-width:520px){.seg{grid-template-columns:repeat(6,1fr)}.seg button{grid-column:span 2}.seg button:nth-child(n+4){grid-column:span 3}}
+.seg{grid-template-columns:repeat(3,1fr)}
 .hist li span:first-child{min-width:0;overflow-wrap:anywhere}
 [hidden]{display:none!important}
 html,body{background:var(--paper);color:var(--ink);margin:0}
@@ -80,6 +79,7 @@ label.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ball)}
 
   <div class="seg" role="group" aria-label="Chọn loại vé">
     <button type="button" data-g="645" aria-pressed="true">Mega 6/45</button>
+    <button type="button" data-g="655" aria-pressed="false">Power 6/55</button>
     <button type="button" data-g="535" aria-pressed="false">Lotto 5/35</button>
     <button type="button" data-g="keno" aria-pressed="false">Keno</button>
     <button type="button" data-g="b18" aria-pressed="false">Bingo18</button>
@@ -106,7 +106,7 @@ label.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ball)}
     </div>
   </section>
 
-  <label class="opt" id="avoidRow"><input type="checkbox" id="avoid"> Cần ít nhất 3 số từ 32–45 (tránh bộ "ngày sinh", giảm khả năng chia Jackpot)</label>
+  <label class="opt" id="avoidRow"><input type="checkbox" id="avoid"> Cần ít nhất 3 số từ 32–<span id="avoidMax">45</span> (tránh bộ "ngày sinh", giảm khả năng chia Jackpot)</label>
 
   <button id="drawBtn" type="button" disabled>Lắc thêm để bốc số</button>
 
@@ -222,6 +222,7 @@ const C=(n,k)=>{let r=1;for(let i=1;i<=k;i++)r=r*(n-k+i)/i;return r;};
 const fmt=x=>Math.round(x).toLocaleString('vi-VN');
 const GAMES={
   '645':{name:'6/45',label:'Mega 6/45',kind:'lotto',k:6,n:45,sp:0,odds:()=>'Độc đắc 1 / '+fmt(C(45,6))},
+  '655':{name:'6/55',label:'Power 6/55',kind:'lotto',k:6,n:55,sp:0,odds:()=>'Jackpot 1 / '+fmt(C(55,6))},
   '535':{name:'5/35',label:'Lotto 5/35',kind:'lotto',k:5,n:35,sp:12,odds:()=>'Độc đắc 1 / '+fmt(C(35,5)*12)+' (5 số + ĐB)'},
   'keno':{name:'Keno',label:'Keno',kind:'keno',n:80,odds:()=>{const k=+$('kenoK').value;return `Trúng đủ ${k}/${k} số: 1 / ${fmt(C(80,20)/C(80-k,20-k))} (giả định mỗi kỳ quay 20/80 số)`;}},
   'b18':{name:'Bingo18',label:'Bingo18',kind:'dice',k:3,n:6,odds:()=>'Đúng bộ 3 số theo thứ tự: 1 / 216 · tổng 3–18'},
@@ -250,7 +251,7 @@ function setGame(g){
   game=g;const G=GAMES[g];
   document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===g));
   $('gameName').textContent=G.name;document.title='Lắc Ra Số '+G.name;
-  $('avoidRow').hidden=g!=='645';$('kenoRow').hidden=g!=='keno';
+  $('avoidRow').hidden=!(g==='645'||g==='655');$('avoidMax').textContent=G.n||45;$('kenoRow').hidden=g!=='keno';
   $('meta').textContent=`Chưa bốc. ${G.odds()}. Mọi bộ số có xác suất như nhau.`;
   $('copyBtn').disabled=true;renderBalls(null);
   try{localStorage.setItem('lrs-game',g);}catch(_){}
@@ -264,7 +265,7 @@ $('drawBtn').addEventListener('click',async()=>{
   $('drawBtn').disabled=true;
   const used={g:motionN,c:compassN,m:micN,t:touchN};
   const seed=await sha(cat(new Uint8Array(new Float64Array(pool).buffer),new Uint8Array(new Float64Array([performance.now(),Date.now()]).buffer),crypto.getRandomValues(new Uint8Array(32))));
-  const G=GAMES[game], filt=game==='645'&&$('avoid').checked;
+  const G=GAMES[game], filt=(game==='645'||game==='655')&&$('avoid').checked;
   let nums,sp=null,attempt=0;
   if(G.kind==='lotto'){
     do{nums=await pick(seed,1,attempt++,G.k,G.n);}while(filt&&nums.filter(n=>n<=31).length>3);
@@ -282,7 +283,7 @@ $('drawBtn').addEventListener('click',async()=>{
   }
   renderBalls(nums,sp);
   const hex=[...seed.slice(0,8)].map(b=>b.toString(16).padStart(2,'0')).join('');
-  $('meta').textContent=`seed ${hex}… · gyro ${used.g} · la bàn ${used.c} · mic ${used.m} · chạm ${used.t}${filt?' · lọc ≥3 số 32–45':''}`;
+  $('meta').textContent=`seed ${hex}… · gyro ${used.g} · la bàn ${used.c} · mic ${used.m} · chạm ${used.t}${filt?' · lọc ≥3 số 32–'+G.n:''}`;
   $('copyBtn').disabled=false; saveHist(current);
   pool=[];touchN=0;motionN=0;compassN=0;micN=0;
   stopMic();
