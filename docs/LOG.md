@@ -25,7 +25,7 @@
 - (advisor, đã thấy) Sau khi bốc, chip mic luôn ghi “đã tắt” kể cả khi trước đó là “bị từ chối”/“không có”.
 - Tỉ lệ XSMB trong UI (“~1/333.333”, “~1/18,5”, giả định 20 ký hiệu) chưa đối chiếu với cơ cấu giải thực tế.
 - Chưa thử trên thiết bị iOS/Android thật (quyền gyro/la bàn, mic); e2e chỉ dùng mic giả của Chromium.
-- CI workflow chưa chạy trên GitHub tại thời điểm viết — xem tab Checks của PR.
+- (Đã kiểm sau) CI GitHub xanh trên mọi commit của PR: https://github.com/nightskat/lac-ra-so/actions/workflows/test.yml
 
 ### Lệnh chạy lại
 ```bash
