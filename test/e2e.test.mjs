@@ -105,3 +105,20 @@ test('pressing the sensor button twice keeps only one live mic stream', async ()
   assert.equal(live, 1);
   await close();
 });
+
+test('draw button stays disabled while a draw is in progress', async () => {
+  const { page, close } = await openPage(() => {
+    const d = crypto.subtle.digest.bind(crypto.subtle);
+    crypto.subtle.digest = async (...a) => { await new Promise(r => setTimeout(r, 50)); return d(...a); };
+  });
+  await scribble(page);
+  await page.click('#drawBtn');
+  const box = await page.locator('#pad').boundingBox();
+  await page.mouse.move(box.x + 20, box.y + 20); await page.mouse.down();
+  await page.mouse.move(box.x + 60, box.y + 60); await page.mouse.up();
+  await page.waitForTimeout(30);
+  assert.equal(await page.locator('#drawBtn').isDisabled(), true);
+  await page.waitForFunction(() => !document.querySelector('#balls .ball.empty'));
+  assert.equal(await page.locator('#hist li').count(), 1);
+  await close();
+});
