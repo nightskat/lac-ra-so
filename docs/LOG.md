@@ -1,11 +1,11 @@
 # LOG
 
-## 2026-11-03 — CI + test + 2 bug fix (nhánh `claude/pensive-hypatia-3l9vf4`)
+## 2026-11-03 — CI + test + 3 bug fix (nhánh `claude/pensive-hypatia-3l9vf4`)
 
 ### Đã làm
 - CI: `.github/workflows/test.yml` (Node 22, `npm ci`, cài Chromium, `npm test`) — trước đó repo không có CI/test nào.
 - `test/core.test.mjs` (8 test): trích khối `// Draw` … `let game=` từ chính `index.html` rồi test `pick`, `roll`, `C`, chuỗi tỉ lệ `GAMES` (6/45 = 8.145.060; 6/55 = 28.989.675; 5/35×12 = 3.895.584; Keno 10/10 ≈ 8.911.711), cộng chi-square với seed cố định (không flaky).
-- `test/e2e.test.mjs` (4 test, Chromium headless, server 127.0.0.1): vẽ tay → bốc → kiểm số ô/khoảng số/lịch sử cho cả 6 game; 2 test hồi quy cho 2 bug bên dưới.
+- `test/e2e.test.mjs` (5 test, Chromium headless, server 127.0.0.1): vẽ tay → bốc → kiểm số ô/khoảng số/lịch sử cho cả 6 game; 3 test hồi quy cho 3 bug bên dưới.
 - Fix 1 `index.html`: không có `crypto.subtle` (mở qua `http://` IP LAN, không phải HTTPS/localhost) → trước đây nút “Bốc số” bị khoá vĩnh viễn, không báo gì. Giờ báo lỗi rõ và mở lại nút; mọi lỗi khác trong lúc bốc cũng được bắt.
 - Fix 2 `index.html`: bấm “bật cảm biến” 2 lần → trước đây mở 2 stream mic, vòng lặp cũ không bao giờ dừng. Giờ dừng stream/vòng cũ trước.
 - Fix 3 `index.html` (từ review đối kháng của advisor `fable`, đã tái hiện): trong lúc đang bốc, một `pointermove` hay tick mic gọi `update()` mở lại nút → bấm lần 2 ra 2 vé. Giờ dùng cờ `drawing`.
