@@ -128,7 +128,7 @@ label.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ball)}
 (()=>{
 const TARGET=200;
 let pool=[], touchN=0, motionN=0, compassN=0, micN=0;
-let drawing=false, audioCtx=null, micStream=null, micTimer=null;
+let drawing=false, audioCtx=null, micStream=null, micTimer=null, micGen=0;
 const $=id=>document.getElementById(id);
 const pad=$('pad'), cv=$('cv'), ctx=cv.getContext('2d');
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -177,7 +177,7 @@ function startMicLoop(){
     const vals=[performance.now()];for(let i=0;i<buf.length;i+=64) vals.push(buf[i]*1e7%1);
     add(vals);micN++;update();},100);
 }
-function stopMic(){clearInterval(micTimer);micTimer=null;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}chip('c-mic','mic · đã tắt','');}
+function stopMic(){micGen++;clearInterval(micTimer);micTimer=null;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}chip('c-mic','mic · đã tắt','');}
 
 $('sensorBtn').addEventListener('click',()=>{
   if(!window.isSecureContext){chip('c-motion','gyro · cần HTTPS','off');chip('c-compass','la bàn · cần HTTPS','off');chip('c-mic','mic · cần HTTPS','off');return;}
@@ -193,8 +193,9 @@ $('sensorBtn').addEventListener('click',()=>{
     setTimeout(()=>{if(!motionN)chip('c-motion','gyro · không có','off');if(!compassN)chip('c-compass','la bàn · không có','off');},3000);
   });
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    const gen=++micGen;
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
-      .then(s=>{if(micStream||micTimer)stopMic();micStream=s;chip('c-mic','mic · chờ','');startMicLoop();})
+      .then(s=>{if(gen!==micGen){s.getTracks().forEach(t=>t.stop());return;}if(micStream||micTimer){stopMic();micGen=gen;}micStream=s;chip('c-mic','mic · chờ','');startMicLoop();})
       .catch(()=>chip('c-mic','mic · bị từ chối','off'));
   } else chip('c-mic','mic · không có','off');
   $('sensorBtn').textContent='📡 Đã bật. Lắc và xoay máy';

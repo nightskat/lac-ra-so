@@ -122,3 +122,25 @@ test('draw button stays disabled while a draw is in progress', async () => {
   assert.equal(await page.locator('#hist li').count(), 1);
   await close();
 });
+
+test('mic permission granted after a draw does not leave the mic running', async () => {
+  const { page, close } = await openPage(() => {
+    window.__streams = [];
+    const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = async c => {
+      await new Promise(r => { window.__grant = r; }); // permission prompt still open
+      const s = await gum(c); window.__streams.push(s); return s;
+    };
+  });
+  await page.click('#sensorBtn');
+  await scribble(page);
+  await page.click('#drawBtn');
+  await page.waitForFunction(() => !document.querySelector('#balls .ball.empty'));
+  await page.evaluate(() => window.__grant());
+  await page.waitForFunction(() => window.__streams.length === 1);
+  await page.waitForTimeout(200);
+  const live = await page.evaluate(() =>
+    window.__streams.filter(s => s.getTracks().some(t => t.readyState === 'live')).length);
+  assert.equal(live, 0);
+  await close();
+});
