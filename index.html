@@ -194,7 +194,7 @@ $('sensorBtn').addEventListener('click',()=>{
   });
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
-      .then(s=>{micStream=s;chip('c-mic','mic · chờ','');startMicLoop();})
+      .then(s=>{if(micStream||micTimer)stopMic();micStream=s;chip('c-mic','mic · chờ','');startMicLoop();})
       .catch(()=>chip('c-mic','mic · bị từ chối','off'));
   } else chip('c-mic','mic · không có','off');
   $('sensorBtn').textContent='📡 Đã bật. Lắc và xoay máy';
@@ -263,6 +263,10 @@ setGame(game);
 let current=null;
 $('drawBtn').addEventListener('click',async()=>{
   $('drawBtn').disabled=true;
+  if(!(window.crypto&&crypto.subtle)){$('meta').textContent='Không bốc được: trình duyệt chặn Web Crypto (cần mở qua HTTPS hoặc localhost).';update();return;}
+  try{await draw();}catch(err){$('meta').textContent='Lỗi khi bốc số: '+(err&&err.message||err)+'. Thử lại.';update();}
+});
+async function draw(){
   const used={g:motionN,c:compassN,m:micN,t:touchN};
   const seed=await sha(cat(new Uint8Array(new Float64Array(pool).buffer),new Uint8Array(new Float64Array([performance.now(),Date.now()]).buffer),crypto.getRandomValues(new Uint8Array(32))));
   const G=GAMES[game], filt=(game==='645'||game==='655')&&$('avoid').checked;
@@ -289,7 +293,7 @@ $('drawBtn').addEventListener('click',async()=>{
   stopMic();
   ctx.clearRect(0,0,cv.width,cv.height);$('hint').hidden=false;$('hint').textContent='Đã bốc. Lắc lại để bốc vé mới (bật lại mic nếu muốn)';
   update();
-});
+}
 
 $('copyBtn').addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(current);$('copyBtn').textContent='Đã chép';}
